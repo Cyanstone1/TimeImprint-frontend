@@ -51,17 +51,17 @@
         </q-item>
         <q-item clickable v-ripple to="/video-library"> <q-item-section avatar> <q-icon name="video_library" /> </q-item-section>
           <q-item-section>我的影像</q-item-section>
-          <q-tooltip>功能开发中</q-tooltip>
+          <!-- <q-tooltip>功能开发中</q-tooltip> -->
         </q-item>
          <q-item clickable v-ripple to="/social-feed" >
           <q-item-section avatar> <q-icon name="dynamic_feed" /> </q-item-section>
           <q-item-section>社交圈</q-item-section>
           <!-- <q-tooltip>功能开发中</q-tooltip> -->
         </q-item>
-        <q-item clickable v-ripple @click="navigateToCharacterLibrary" :disable="!isLoggedIn">
-          <q-item-section avatar> <q-icon name="people" /> </q-item-section>
-          <q-item-section>我的人物库</q-item-section>
-           <q-tooltip v-if="!isLoggedIn">请先登录</q-tooltip>
+        <q-item clickable v-ripple to="/character-library" :disable="!isLoggedIn">
+            <q-item-section avatar> <q-icon name="people_alt" /> </q-item-section>
+            <q-item-section>我的人物库</q-item-section>
+          <q-tooltip v-if="!isLoggedIn">请先登录</q-tooltip>
         </q-item>
          <q-item clickable v-ripple @click="promptProfileSetup" v-if="isLoggedIn">
             <q-item-section avatar> <q-icon name="account_circle" /> </q-item-section>
