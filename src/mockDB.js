@@ -31,15 +31,87 @@ const initialGeneratedVideos = (() => {
 })();
 export const mockGeneratedVideosReactive = ref(initialGeneratedVideos);
 
+// --- 社交圈帖子数据 ---
+const initialSocialFeedPosts = (() => {
+    if (typeof window !== 'undefined') {
+        const stored = localStorage.getItem('timeImprintMockSocialFeedPostsData');
+        try { return stored ? JSON.parse(stored) : []; }
+        catch (e) { console.error("Failed to parse mockSocialFeedPostsData", e); return []; }
+    }
+    return [];
+})();
+export const mockSocialFeedPostsReactive = ref(initialSocialFeedPosts);
+
+export function addSocialPost(postDetails) {
+    const currentUser = JSON.parse(localStorage.getItem('mockUserData')) || { id: 'unknown_user', name: '匿名用户', avatar_url: '/mock_assets/avatars/default_avatar.png' };
+
+    const newPost = {
+        id: `post_${Date.now()}_${Math.random().toString(16).slice(2)}`,
+        author_id: currentUser.id,
+        author_name: currentUser.name,
+        author_avatar_url: currentUser.avatar_url,
+        created_at: new Date().toISOString(),
+        likes: 0,
+        comments: [], // { id, author_name, author_avatar, text, created_at }
+        ...postDetails, // 应该包含 video_id_ref, video_title, video_url, video_thumbnail_url, caption
+    };
+    mockSocialFeedPostsReactive.value.unshift(newPost); // 新帖子放最前面
+    saveDataToLocalStorage('timeImprintMockSocialFeedPostsData', mockSocialFeedPostsReactive.value);
+    console.log("MockDB: Social Post added", newPost);
+    return newPost;
+}
+
+// (可选) 添加点赞和评论的 mock 函数
+export function toggleLikePost(postId, userId) {
+    const post = mockSocialFeedPostsReactive.value.find(p => p.id === postId);
+    if (post) {
+        if (!post.liked_by) post.liked_by = [];
+        const userIndex = post.liked_by.indexOf(userId);
+        if (userIndex > -1) {
+            post.likes--;
+            post.liked_by.splice(userIndex, 1);
+        } else {
+            post.likes++;
+            post.liked_by.push(userId);
+        }
+        saveDataToLocalStorage('timeImprintMockSocialFeedPostsData', mockSocialFeedPostsReactive.value);
+        return true;
+    }
+    return false;
+}
+
+export function addCommentToPost(postId, commentText) {
+    const post = mockSocialFeedPostsReactive.value.find(p => p.id === postId);
+    const currentUser = JSON.parse(localStorage.getItem('mockUserData')) || { name: '评论者', avatar_url: '/mock_assets/avatars/default_avatar.png' };
+    if (post) {
+        if (!post.comments) post.comments = [];
+        const newComment = {
+            id: `comment_${Date.now()}`,
+            author_name: currentUser.name,
+            author_avatar: currentUser.avatar_url,
+            text: commentText,
+            created_at: new Date().toISOString()
+        };
+        post.comments.push(newComment);
+        saveDataToLocalStorage('timeImprintMockSocialFeedPostsData', mockSocialFeedPostsReactive.value);
+        return newComment;
+    }
+    return null;
+}
+
 
 export function addGeneratedVideo(videoDetails) {
+    const videoFileName = videoDetails.video_url ? videoDetails.video_url.split('/').pop().replace(/\.(mp4|mov|avi|wmv)$/i, '') : `video_${Date.now()}`;
+    const mockThumbnailUrl = `/mock_media/generated_videos/thumbnails/${videoFileName}_thumb.png`; // Or .jpg if your thumbs are jpg
+
     const newVideo = {
         id: `video_${Date.now()}_${Math.random().toString(16).slice(2)}`,
-        status: 'pending_script', // pending_script, script_generated, rendering, completed, failed
+        status: 'pending_script',
         created_at: new Date().toISOString(),
-        ...videoDetails, // 包含 title, user_prompt, selected_anchor_ids, json_script (稍后添加), video_url (渲染后添加)
+        thumbnail_url: mockThumbnailUrl, // Set thumbnail based on video name
+        ...videoDetails,
     };
-    mockGeneratedVideosReactive.value.unshift(newVideo); // 新的视频放最前面
+    mockGeneratedVideosReactive.value.unshift(newVideo);
     saveDataToLocalStorage('timeImprintMockGeneratedVideosData', mockGeneratedVideosReactive.value);
     console.log("MockDB: Generated Video entry created", newVideo);
     return newVideo;
@@ -48,9 +120,19 @@ export function addGeneratedVideo(videoDetails) {
 export function updateGeneratedVideo(videoId, updates) {
     const videoIndex = mockGeneratedVideosReactive.value.findIndex(v => v.id === videoId);
     if (videoIndex !== -1) {
-        mockGeneratedVideosReactive.value[videoIndex] = { ...mockGeneratedVideosReactive.value[videoIndex], ...updates };
+        let currentVideo = mockGeneratedVideosReactive.value[videoIndex];
+        let newUpdates = { ...updates };
+
+        // If video_url is being updated and thumbnail_url is not explicitly provided in updates,
+        // try to derive it.
+        if (updates.video_url && !updates.thumbnail_url) {
+            const videoFileName = updates.video_url.split('/').pop().replace(/\.(mp4|mov|avi|wmv)$/i, '');
+            newUpdates.thumbnail_url = `/mock_media/generated_videos/thumbnails/${videoFileName}_thumb.png`; // Or .jpg
+        }
+
+        mockGeneratedVideosReactive.value[videoIndex] = { ...currentVideo, ...newUpdates };
         saveDataToLocalStorage('timeImprintMockGeneratedVideosData', mockGeneratedVideosReactive.value);
-        console.log("MockDB: Generated Video updated", videoId, updates);
+        console.log("MockDB: Generated Video updated", videoId, mockGeneratedVideosReactive.value[videoIndex]);
         return mockGeneratedVideosReactive.value[videoIndex];
     }
     console.warn("MockDB: Generated Video not found for update", videoId);
@@ -178,3 +260,56 @@ export function findMockCharacterById(characterId) { /* ... 保持不变 ... */
     return mockCharactersReactive.value.find(c => c.id === characterId);
 }
 
+const ensureInitialMockVideos = () => {
+    if (mockGeneratedVideosReactive.value.length === 0) {
+        console.log("MockDB: No videos in localStorage, adding initial mock videos.");
+        addGeneratedVideo({
+            title: "我的黄山日出大片",
+            user_prompt: "黄山日出，云海，震撼",
+            selected_anchor_ids: ['mock_anchor_1', 'mock_anchor_2'],
+            duration_preference: "30s",
+            generate_subtitles: true,
+            music_preference: "大气史诗",
+            json_script: { scenes: [{media_path:"...", duration:5}] },
+            video_url: "/mock_media/generated_videos/sample_huangshan_video.mp4",
+            // thumbnail_url will be derived by addGeneratedVideo
+            status: 'completed',
+            created_at: new Date(Date.now() - 86400000).toISOString() // Yesterday
+        });
+        addGeneratedVideo({
+            title: "毕业季的我们",
+            user_prompt: "毕业快乐，校园回忆，友谊",
+            selected_anchor_ids: ['mock_anchor_3'],
+            duration_preference: "60s",
+            generate_subtitles: true,
+            music_preference: "温馨感人",
+            json_script: { scenes: [{media_path:"...", duration:5}] },
+            video_url: "/mock_media/generated_videos/sample_graduation_video.mp4",
+            // thumbnail_url will be derived
+            status: 'completed',
+            created_at: new Date(Date.now() - 172800000).toISOString() // Day before yesterday
+        });
+        addGeneratedVideo({ // Example of a video that might be "processing"
+            title: "旅行Vlog (渲染中)",
+            user_prompt: "我的旅行记录",
+            selected_anchor_ids: ['mock_anchor_4'],
+            status: 'rendering', // Or any other processing status
+            json_script: {scenes:[]},
+            video_url: null, // No video URL yet
+            thumbnail_url: null // No thumbnail yet
+        });
+    }
+};
+
+// Initialize with some data if local storage is empty
+if (typeof window !== 'undefined' && !localStorage.getItem('timeImprintMockGeneratedVideosData')) {
+    ensureInitialMockVideos();
+}
+
+// 确保在 mockDb.js 初始化时，如果 localStorage 为空，也初始化 mockSocialFeedPostsReactive
+if (typeof window !== 'undefined' && !localStorage.getItem('timeImprintMockSocialFeedPostsData')) {
+    // 可以添加一些初始的 mock 帖子数据，或者让它为空
+    // addSocialPost({ /* ... mock post 1 ... */ });
+    // addSocialPost({ /* ... mock post 2 ... */ });
+    console.log("MockDB: Initialized empty social feed posts.");
+}

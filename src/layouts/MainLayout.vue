@@ -49,14 +49,14 @@
           <q-item-section avatar> <q-icon name="movie_creation" /> </q-item-section>
           <q-item-section>影像创作</q-item-section>
         </q-item>
-        <q-item clickable v-ripple to="/video-library" :disable="true"> <q-item-section avatar> <q-icon name="video_library" /> </q-item-section>
+        <q-item clickable v-ripple to="/video-library"> <q-item-section avatar> <q-icon name="video_library" /> </q-item-section>
           <q-item-section>我的影像</q-item-section>
           <q-tooltip>功能开发中</q-tooltip>
         </q-item>
-         <q-item clickable v-ripple to="/social-feed" :disable="true">
+         <q-item clickable v-ripple to="/social-feed" >
           <q-item-section avatar> <q-icon name="dynamic_feed" /> </q-item-section>
           <q-item-section>社交圈</q-item-section>
-          <q-tooltip>功能开发中</q-tooltip>
+          <!-- <q-tooltip>功能开发中</q-tooltip> -->
         </q-item>
         <q-item clickable v-ripple @click="navigateToCharacterLibrary" :disable="!isLoggedIn">
           <q-item-section avatar> <q-icon name="people" /> </q-item-section>
