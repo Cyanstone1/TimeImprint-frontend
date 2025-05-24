@@ -53,6 +53,10 @@
           <q-item-section>我的影像</q-item-section>
           <!-- <q-tooltip>功能开发中</q-tooltip> -->
         </q-item>
+        <q-item clickable v-ripple to="/friends" :disable="!isLoggedIn">
+          <q-item-section avatar> <q-icon name="people_outline" /> </q-item-section>
+          <q-item-section>我的好友</q-item-section>
+        </q-item>
          <q-item clickable v-ripple to="/social-feed" >
           <q-item-section avatar> <q-icon name="dynamic_feed" /> </q-item-section>
           <q-item-section>社交圈</q-item-section>
@@ -62,6 +66,10 @@
             <q-item-section avatar> <q-icon name="people_alt" /> </q-item-section>
             <q-item-section>我的人物库</q-item-section>
           <q-tooltip v-if="!isLoggedIn">请先登录</q-tooltip>
+        </q-item>
+        <q-item clickable v-ripple to="/relationship-graph" :disable="!isLoggedIn">
+          <q-item-section avatar> <q-icon name="hub" /> </q-item-section>
+          <q-item-section>人物关系图</q-item-section>
         </q-item>
          <q-item clickable v-ripple @click="promptProfileSetup" v-if="isLoggedIn">
             <q-item-section avatar> <q-icon name="account_circle" /> </q-item-section>

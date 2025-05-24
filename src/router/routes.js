@@ -11,6 +11,8 @@ const routes = [
       { path: 'video-library', component: () => import('pages/VideoLibraryPage.vue'), name: 'VideoLibrary' } ,// 先把影像库的路由也加上
       { path: 'character-library', component: () => import('pages/CharacterLibraryPage.vue'), name: 'CharacterLibrary', meta: { requiresAuth: true } }, // 示例：添加人物库路由
       { path: 'social-feed', component: () => import('pages/SocialFeedPage.vue'), name: 'SocialFeed', meta: { requiresAuth: true } }, // 示例：添加社交圈路由
+      { path: 'friends', component: () => import('pages/FriendsPage.vue'), name: 'FriendsManagement', meta: { requiresAuth: true } },
+      { path: 'relationship-graph', component: () => import('pages/RelationshipGraphPage.vue'), name: 'RelationshipGraph', meta: { requiresAuth: true } }
     ]
   },
 
